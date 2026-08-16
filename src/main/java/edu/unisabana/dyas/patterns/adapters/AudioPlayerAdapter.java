@@ -14,6 +14,7 @@ public class AudioPlayerAdapter implements AudioPlayer {
     public AudioPlayerAdapter() {
         adapters.add(new AdvancedAudioPlayerAdapter());
         adapters.add(new PremiumAudioPlayerAdapter());
+        adapters.add(new BasicAudioPlayerAdapter());
         // Para soportar un TERCER proveedor en el futuro:
         // 1) Crear su clase XxxAdapter implementando FormatAwareAudioPlayer.
         // 2) Añadir aquí: adapters.add(new XxxAdapter());

@@ -18,5 +18,8 @@ public class Client {
 
         audioPlayer.play("aac", "cancion.aac");
         audioPlayer.stop();
+
+        audioPlayer.play("wav", "sonido.wav");
+        audioPlayer.stop();
     }
 }
