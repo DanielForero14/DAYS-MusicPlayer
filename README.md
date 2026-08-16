@@ -1,58 +1,149 @@
-# AudioPlayer
+# 🎵 AudioPlayer — Adapter Pattern
 
-### Descripción del Problema:
-Tienes un reproductor de audio (`AudioPlayer`) que debe soportar formatos de dos proveedores externos, cada uno con su propia interfaz — incompatibles entre sí y **no modificables**:
+## Patrones Estructurales
 
-* `AdvancedAudioPlayer`: reproduce MP4 y VLC mediante `playMp4(fileName)` / `playVlc(fileName)` / `stop()`.
-* `PremiumAudioPlayer`: reproduce cualquier códec mediante un único método `playAudio(codec, path, volumePercent)` / `halt()`, y siempre exige un volumen explícito (0-100).
+**Autor:** Daniel Felipe Forero Sánchez
 
-Necesitas que el resto de la aplicación pueda reproducir archivos de **cualquiera** de los dos proveedores (tipos `"mp4"`, `"vlc"`, `"flac"`, `"aac"`) usando siempre la misma interfaz `AudioPlayer`, sin que `Client` conozca `AdvancedAudioPlayer` ni `PremiumAudioPlayer` directamente.
+---
 
-### Solución Propuesta:
-Adaptador(es) que permitan que la interfaz `AudioPlayer` utilice `AdvancedAudioPlayer` y `PremiumAudioPlayer` como si fueran un reproductor normal. Usted decide si le conviene un adaptador por proveedor o uno que combine ambos internamente — justifique la decisión.
+## 📌 Descripción
 
-Para los tipos que resuelva con `PremiumAudioPlayer`, `AudioPlayer.play(audioType, fileName)` no recibe volumen: la solución debe definir y documentar un volumen por defecto razonable.
+Este proyecto implementa el patrón estructural **Adapter** para permitir que diferentes reproductores de audio con interfaces incompatibles puedan utilizarse mediante una única interfaz:
 
-### Estructura del Código:
+```java
+AudioPlayer
+```
 
-El código consta de las siguientes clases:
+El objetivo es que `Client` pueda reproducir diferentes formatos sin conocer directamente los reproductores externos.
 
-#### `AudioPlayer` (Interfaz):
-Define la interfaz básica para un reproductor de audio: `play(audioType, fileName)` / `stop()`.
+Los formatos principales soportados son:
 
-#### `AdvancedAudioPlayer` (Clase, de terceros):
-Reproduce MP4 y VLC con su propia API.
+- MP4
+- VLC
+- FLAC
+- AAC
 
-#### `PremiumAudioPlayer` (Clase, de terceros):
-Reproduce cualquier códec (incluye `"flac"` y `"aac"`) con su propia API, exigiendo volumen en cada llamada.
+---
 
-#### `Client` (Clase):
-Punto de entrada de la aplicación.
+## 🔌 Patrón Adapter
 
-### Resultado Esperado:
-`Client` debe poder reproducir archivos `"mp4"`, `"vlc"`, `"flac"` y `"aac"` usando exclusivamente `AudioPlayer.play(audioType, fileName)` / `AudioPlayer.stop()`, sin referenciar `AdvancedAudioPlayer` ni `PremiumAudioPlayer` directamente en ningún punto.
+Los proveedores externos utilizan métodos diferentes para reproducir audio.
 
-Recuerde los comandos para la ejecución del programa
+Para solucionar esta incompatibilidad se crearon adaptadores que permiten utilizarlos mediante `AudioPlayer`.
 
-Para compilar
+```text
+                Client
+                  │
+                  ▼
+              AudioPlayer
+                  │
+                  ▼
+          AudioPlayerAdapter
+                  │
+        ┌─────────┴─────────┐
+        │                   │
+        ▼                   ▼
+AdvancedAudioPlayer   PremiumAudioPlayer
+     Adapter               Adapter
+        │                   │
+        ▼                   ▼
+AdvancedAudioPlayer   PremiumAudioPlayer
+```
 
-```bash
+### AdvancedAudioPlayerAdapter
+
+Se encarga de adaptar los formatos:
+
+```text
+MP4
+VLC
+```
+
+hacia los métodos correspondientes de `AdvancedAudioPlayer`.
+
+### PremiumAudioPlayerAdapter
+
+Se encarga principalmente de:
+
+```text
+FLAC
+AAC
+```
+
+utilizando `PremiumAudioPlayer`.
+
+Como este proveedor requiere un volumen obligatorio y `AudioPlayer` no lo recibe, se utiliza un **volumen por defecto del 50 %**.
+
+---
+
+## 🔄 Funcionamiento
+
+`Client` trabaja únicamente con:
+
+```java
+AudioPlayer audioPlayer = new AudioPlayerAdapter();
+```
+
+Luego puede reproducir diferentes formatos utilizando siempre:
+
+```java
+audioPlayer.play(audioType, fileName);
+```
+
+Los adaptadores se encargan de traducir la operación al proveedor correspondiente.
+
+El método:
+
+```java
+audioPlayer.stop();
+```
+
+también es adaptado al método necesario para detener el reproductor que se encuentre activo.
+
+---
+
+## 🛠️ Compilación
+
+Desde la carpeta raíz del proyecto:
+
+```powershell
 mvn compile
 ```
 
-Para ejecutar la aplicación:
+Una compilación correcta debe finalizar con:
 
-```bash
-mvn exec:java -Dexec.mainClass=edu.unisabana.dyas.patterns.Client
+```text
+BUILD SUCCESS
 ```
 
-### Criterios de evaluación
+---
 
-* Diseño.
-	1. `AudioPlayer`, `AdvancedAudioPlayer` y `PremiumAudioPlayer` no deben modificarse.
-	2. `Client` debe depender únicamente de la interfaz `AudioPlayer`, sin referenciar directamente `AdvancedAudioPlayer` ni `PremiumAudioPlayer`.
-	3. Debe ser posible agregar un tercer proveedor en el futuro sin modificar `Client` ni los adaptadores existentes.
-* Funcionalidad.
-	1. `play("mp4", ...)` y `play("vlc", ...)` delegan correctamente en `AdvancedAudioPlayer`.
-	2. `play("flac", ...)` y `play("aac", ...)` delegan correctamente en `PremiumAudioPlayer`, usando un volumen por defecto documentado.
-	3. `stop()` detiene correctamente el reproductor subyacente que esté activo (`playMp4`/`playVlc` → `stop()`; `flac`/`aac` → `halt()`).
+## ▶️ Ejecución
+
+Ejecutar:
+
+```powershell
+mvn exec:java "-Dexec.mainClass=edu.unisabana.dyas.patterns.Client"
+```
+
+---
+
+## 📝 Conclusión
+
+El patrón **Adapter** permite que `Client` utilice diferentes proveedores de audio mediante una misma interfaz, sin depender directamente de las APIs externas.
+
+En resumen:
+
+```text
+Diferentes proveedores
+        +
+      Adapter
+        =
+Una interfaz común
+```
+
+---
+
+## 👨‍💻 Autor
+
+**Daniel Felipe Forero Sánchez**
